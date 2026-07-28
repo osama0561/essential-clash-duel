@@ -22,7 +22,9 @@ canvas { width: min(100%, 420px); max-height: 56vh; aspect-ratio: 420/720; displ
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; padding: 9px; border-radius: 20px; background: rgba(15, 23, 42, .78); border: 1px solid rgba(255,255,255,.14); }
 .cards button { min-height: 92px; text-align: left; padding: 9px; background: linear-gradient(180deg, color-mix(in srgb, var(--card) 78%, #172554), #111827); border: 2px solid rgba(255,255,255,.12); display: grid; gap: 3px; align-content: start; }
 .cards button.selected { border-color: #fff; outline: 3px solid color-mix(in srgb, var(--card) 50%, transparent); transform: translateY(-2px); }
-.emoji { font-size: 21px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.35)); }
+.emoji, .card-photo { width: 32px; height: 32px; border-radius: 999px; object-fit: cover; filter: drop-shadow(0 2px 0 rgba(0,0,0,.35)); }
+.emoji { font-size: 21px; display: grid; place-items: center; }
+.card-photo { border: 2px solid rgba(255,255,255,.9); background: #111827; }
 .cards b { font-size: 12px; line-height: 1.05; }
 small { color: rgba(255,255,255,.8); line-height: 1.2; font-size: 10px; }
 .note { text-align: center; font-size: 12px; line-height: 1.45; }

@@ -11,12 +11,14 @@ const MAX_TOWER_HP = 1200;
 const KING_HP = 1700;
 const MAX_ELIXIR = 10;
 const ARENA = { w: 420, h: 720 };
+const GIANT_FACE = new Image();
+GIANT_FACE.src = '/giant-face.jpg';
 
 const CARDS = [
   { id: 'guard', name: 'Shield Guard', cost: 2, hp: 155, dmg: 22, speed: 48, range: 22, rate: 0.9, icon: '🛡️', color: '#2563eb', role: 'tank' },
   { id: 'knight', name: 'Sword Knight', cost: 3, hp: 260, dmg: 32, speed: 38, range: 24, rate: 1.05, icon: '⚔️', color: '#f59e0b', role: 'melee' },
   { id: 'archer', name: 'Pink Archer', cost: 3, hp: 125, dmg: 24, speed: 34, range: 118, rate: 0.75, icon: '🏹', color: '#ec4899', role: 'ranged' },
-  { id: 'giant', name: 'Stone Brute', cost: 5, hp: 560, dmg: 48, speed: 24, range: 28, rate: 1.25, icon: '🪨', color: '#a16207', role: 'giant' },
+  { id: 'giant', name: 'Osama Giant', cost: 5, hp: 560, dmg: 48, speed: 24, range: 28, rate: 1.25, icon: '🧔🏻', color: '#a16207', role: 'giant' },
   { id: 'spear', name: 'Spear Goblin', cost: 2, hp: 95, dmg: 18, speed: 58, range: 92, rate: 0.62, icon: '🟢', color: '#16a34a', role: 'spear' },
   { id: 'wizard', name: 'Fire Wizard', cost: 4, hp: 150, dmg: 42, speed: 30, range: 104, rate: 1.1, icon: '🔥', color: '#ef4444', role: 'wizard', splash: 34 },
   { id: 'mini', name: 'Mini Brute', cost: 4, hp: 340, dmg: 58, speed: 42, range: 24, rate: 1.15, icon: '💪', color: '#7c3aed', role: 'mini' },
@@ -114,7 +116,18 @@ function drawUnit(ctx, u) {
   const face = '#f0b17a';
   const eyes = () => { ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(-5, -24, 2, 0, Math.PI*2); ctx.arc(6, -24, 2, 0, Math.PI*2); ctx.fill(); };
 
-  if (u.role === 'giant') { ctx.fillStyle = '#7c3f17'; rr(ctx, -20, -12, 40, 43, 17); ctx.fillStyle = face; ctx.beginPath(); ctx.arc(0, -28, 21, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#78350f'; rr(ctx, -15, -47, 30, 11, 5); ctx.strokeStyle = '#3f2a18'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(15, 3); ctx.lineTo(33, -6); ctx.stroke(); ctx.fillStyle = '#78716c'; ctx.beginPath(); ctx.arc(38, -7, 9, 0, Math.PI*2); ctx.fill(); eyes(); }
+  if (u.role === 'giant') {
+    ctx.fillStyle = '#7c3f17'; rr(ctx, -23, -10, 46, 45, 18);
+    ctx.fillStyle = '#f8fafc'; rr(ctx, -28, -13, 56, 17, 8);
+    ctx.strokeStyle = '#3f2a18'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(17, 5); ctx.lineTo(37, -5); ctx.stroke();
+    ctx.fillStyle = '#78716c'; ctx.beginPath(); ctx.arc(42, -6, 10, 0, Math.PI*2); ctx.fill();
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0, -30, 25, 0, Math.PI * 2); ctx.clip();
+    if (GIANT_FACE.complete) ctx.drawImage(GIANT_FACE, -25, -55, 50, 50);
+    else { ctx.fillStyle = face; ctx.fillRect(-25, -55, 50, 50); }
+    ctx.restore();
+    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, -30, 26, 0, Math.PI * 2); ctx.stroke();
+  }
   else if (u.role === 'ranged') { ctx.fillStyle = '#7c2d12'; rr(ctx, -10, -1, 20, 29, 8); ctx.fillStyle = '#f9a8d4'; ctx.beginPath(); ctx.arc(0, -25, 15, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#ec4899'; ctx.beginPath(); ctx.arc(0, -35, 17, Math.PI, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(16, -8, 23, -1.2, 1.2); ctx.stroke(); eyes(); }
   else if (u.role === 'wizard') { ctx.fillStyle = '#7f1d1d'; rr(ctx, -13, -3, 26, 34, 9); ctx.fillStyle = face; ctx.beginPath(); ctx.arc(0, -25, 14, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(-17,-34); ctx.lineTo(0,-60); ctx.lineTo(17,-34); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(25, -8, 9, 0, Math.PI*2); ctx.fill(); eyes(); }
   else if (u.role === 'spear') { ctx.fillStyle = '#15803d'; rr(ctx, -10, 0, 20, 27, 8); ctx.fillStyle = '#86efac'; ctx.beginPath(); ctx.arc(0, -22, 13, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#92400e'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(11, -3); ctx.lineTo(37, -35); ctx.stroke(); ctx.fillStyle = '#e5e7eb'; ctx.beginPath(); ctx.moveTo(37,-35); ctx.lineTo(31,-24); ctx.lineTo(43,-27); ctx.closePath(); ctx.fill(); eyes(); }
@@ -219,7 +232,7 @@ function App() {
     </section>
     <section className="hud"><div className="meter blue"><Zap size={17}/> Elixir <b>{Math.floor(snapshot?.playerElixir ?? 0)}</b></div><div className="banner">{banner}</div><div className="meter red"><Swords size={17}/> Towers {towerSummary.player} - {towerSummary.enemy}</div></section>
     <canvas ref={canvasRef} width={ARENA.w} height={ARENA.h} onClick={handleCanvas} />
-    <section className="cards portrait-cards">{CARDS.map(card => <button key={card.id} onClick={() => setSelected(card)} className={selected.id === card.id ? 'selected' : ''} style={{'--card': card.color}}><span className="emoji">{card.icon}</span><b>{card.name}</b><small>{card.cost} elixir · {card.hp} hp · {card.dmg} dmg</small></button>)}</section>
+    <section className="cards portrait-cards">{CARDS.map(card => <button key={card.id} onClick={() => setSelected(card)} className={selected.id === card.id ? 'selected' : ''} style={{'--card': card.color}}>{card.role === 'giant' ? <img className="card-photo" src="/giant-face-circle.png" alt="Osama Giant" /> : <span className="emoji">{card.icon}</span>}<b>{card.name}</b><small>{card.cost} elixir · {card.hp} hp · {card.dmg} dmg</small></button>)}</section>
     <p className="note">Original fan-made cartoon styling inspired by portrait lane/tower arena games; no copied Supercell art or assets.</p>
   </main>;
 }
