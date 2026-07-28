@@ -11,10 +11,10 @@ const MAX_TOWER_HP = 1200;
 const MAX_ELIXIR = 10;
 
 const CARDS = [
-  { id: 'guard', name: 'Guard', cost: 2, hp: 155, dmg: 22, speed: 44, range: 20, rate: 0.9, emoji: '🛡️', color: '#60a5fa' },
-  { id: 'knight', name: 'Knight', cost: 3, hp: 260, dmg: 32, speed: 35, range: 22, rate: 1.05, emoji: '⚔️', color: '#f59e0b' },
-  { id: 'archer', name: 'Archer', cost: 3, hp: 125, dmg: 24, speed: 32, range: 118, rate: 0.75, emoji: '🏹', color: '#fb7185' },
-  { id: 'giant', name: 'Giant', cost: 5, hp: 520, dmg: 46, speed: 22, range: 26, rate: 1.25, emoji: '🪨', color: '#a78bfa' },
+  { id: 'guard', name: 'Shield Guard', cost: 2, hp: 155, dmg: 22, speed: 44, range: 20, rate: 0.9, emoji: '🛡️', color: '#3b82f6', armor: '#7dd3fc' },
+  { id: 'knight', name: 'Sword Knight', cost: 3, hp: 260, dmg: 32, speed: 35, range: 22, rate: 1.05, emoji: '⚔️', color: '#f59e0b', armor: '#fcd34d' },
+  { id: 'archer', name: 'Pink Archer', cost: 3, hp: 125, dmg: 24, speed: 32, range: 118, rate: 0.75, emoji: '🏹', color: '#ec4899', armor: '#f9a8d4' },
+  { id: 'giant', name: 'Stone Brute', cost: 5, hp: 520, dmg: 46, speed: 22, range: 26, rate: 1.25, emoji: '🪨', color: '#a16207', armor: '#d6d3d1' },
 ];
 
 const DIFFICULTIES = {
@@ -31,6 +31,145 @@ function hpColor(pct) {
   if (pct > 0.55) return '#22c55e';
   if (pct > 0.25) return '#f59e0b';
   return '#ef4444';
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fill();
+}
+
+function drawHP(ctx, x, y, hp, max, width = 64) {
+  const pct = Math.max(0, hp / max);
+  ctx.fillStyle = 'rgba(15, 23, 42, .88)';
+  roundRect(ctx, x - width / 2, y - 48, width, 8, 4);
+  ctx.fillStyle = hpColor(pct);
+  roundRect(ctx, x - width / 2 + 1, y - 47, Math.max(2, (width - 2) * pct), 6, 3);
+}
+
+function drawArena(ctx) {
+  const sky = ctx.createLinearGradient(0, 0, 0, 504);
+  sky.addColorStop(0, '#72c2f6');
+  sky.addColorStop(0.35, '#89d1fd');
+  sky.addColorStop(0.36, '#3e8d41');
+  sky.addColorStop(1, '#1f6f38');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, 900, 504);
+
+  // Spectator stands and banners: original cartoon arena mood, no copied assets.
+  ctx.fillStyle = '#1e3a8a';
+  roundRect(ctx, 18, 24, 864, 58, 18);
+  ctx.fillStyle = '#0f172a';
+  for (let x = 48; x < 860; x += 38) {
+    ctx.beginPath(); ctx.arc(x, 54, 7, 0, Math.PI * 2); ctx.fill();
+  }
+  ['#2563eb', '#facc15', '#ef4444', '#22c55e'].forEach((c, i) => {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.moveTo(180 + i * 140, 80); ctx.lineTo(220 + i * 140, 80); ctx.lineTo(200 + i * 140, 112); ctx.closePath(); ctx.fill();
+  });
+
+  // Two sides of the battlefield.
+  ctx.fillStyle = '#2f8f46'; ctx.fillRect(0, 94, 450, 410);
+  ctx.fillStyle = '#34864b'; ctx.fillRect(450, 94, 450, 410);
+  ctx.fillStyle = 'rgba(255,255,255,.08)';
+  for (let x = 0; x < 900; x += 42) for (let y = 98; y < 500; y += 42) ctx.fillRect(x, y, 22, 22);
+
+  // Stone river with two bridges.
+  const river = ctx.createLinearGradient(420, 0, 480, 0);
+  river.addColorStop(0, '#38bdf8'); river.addColorStop(0.5, '#0ea5e9'); river.addColorStop(1, '#2563eb');
+  ctx.fillStyle = river;
+  roundRect(ctx, 421, 94, 58, 410, 22);
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  for (let y = 112; y < 500; y += 34) { ctx.beginPath(); ctx.arc(445, y, 16, 0, Math.PI); ctx.fill(); }
+  [170, 332].forEach(y => {
+    ctx.fillStyle = '#9a6a36'; roundRect(ctx, 384, y - 25, 132, 50, 10);
+    ctx.fillStyle = '#c08a4c'; for (let x = 396; x < 510; x += 24) roundRect(ctx, x, y - 22, 12, 44, 3);
+    ctx.strokeStyle = '#5b341a'; ctx.lineWidth = 3; ctx.strokeRect(386, y - 24, 128, 48);
+  });
+
+  // Lane roads.
+  for (const y of LANE_Y) {
+    ctx.fillStyle = 'rgba(180, 134, 75, .62)';
+    roundRect(ctx, 114, y - 30, 672, 60, 18);
+    ctx.fillStyle = 'rgba(255,255,255,.12)';
+    for (let x = 142; x < 760; x += 50) roundRect(ctx, x, y - 4, 24, 8, 4);
+  }
+
+  // Decorative rocks and shrubs.
+  for (let i = 0; i < 16; i++) {
+    const x = 35 + (i * 53) % 825;
+    const y = 112 + (i * 97) % 365;
+    ctx.fillStyle = i % 2 ? '#14532d' : '#64748b';
+    ctx.beginPath(); ctx.ellipse(x, y, 10 + (i % 3) * 3, 7 + (i % 2) * 4, 0, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawTower(ctx, t) {
+  const blue = t.owner === 'player';
+  if (t.hp <= 0) ctx.globalAlpha = .35;
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath(); ctx.ellipse(0, 39, 42, 13, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = blue ? '#1d4ed8' : '#b91c1c';
+  roundRect(ctx, -32, -28, 64, 66, 10);
+  ctx.fillStyle = blue ? '#60a5fa' : '#f87171';
+  roundRect(ctx, -25, -22, 50, 52, 8);
+  ctx.fillStyle = '#6b4f2a';
+  roundRect(ctx, -37, -44, 74, 22, 8);
+  ctx.fillStyle = '#fbbf24';
+  for (let x = -28; x <= 28; x += 28) roundRect(ctx, x - 8, -58, 16, 18, 4);
+  ctx.fillStyle = '#fde68a';
+  ctx.beginPath(); ctx.moveTo(-38, -44); ctx.lineTo(0, -68); ctx.lineTo(38, -44); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#111827';
+  roundRect(ctx, -11, 1, 22, 36, 11);
+  ctx.fillStyle = blue ? '#bfdbfe' : '#fecaca';
+  ctx.font = '900 24px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('★', 0, -26);
+  ctx.restore();
+  drawHP(ctx, t.x, t.y, t.hp, t.maxHp, 72);
+  ctx.globalAlpha = 1;
+}
+
+function drawUnit(ctx, u) {
+  const enemy = u.owner === 'enemy';
+  const dir = enemy ? -1 : 1;
+  const team = enemy ? '#dc2626' : '#2563eb';
+  ctx.save();
+  ctx.translate(u.x, u.y);
+  ctx.scale(dir, 1);
+  ctx.fillStyle = 'rgba(0,0,0,.24)';
+  ctx.beginPath(); ctx.ellipse(0, 24, u.id.includes('giant') ? 30 : 22, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+  if (u.id.includes('giant')) {
+    ctx.fillStyle = '#8b5e34'; roundRect(ctx, -21, -13, 42, 44, 18);
+    ctx.fillStyle = '#f0b17a'; ctx.beginPath(); ctx.arc(0, -28, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7c2d12'; roundRect(ctx, -16, -48, 32, 12, 6);
+    ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.arc(-7, -29, 2, 0, Math.PI*2); ctx.arc(8, -29, 2, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#3f2a18'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(16, 4); ctx.lineTo(34, -5); ctx.stroke();
+    ctx.fillStyle = '#78716c'; ctx.beginPath(); ctx.arc(39, -6, 9, 0, Math.PI * 2); ctx.fill();
+  } else if (u.id.includes('archer')) {
+    ctx.fillStyle = '#7c2d12'; roundRect(ctx, -11, -2, 22, 29, 8);
+    ctx.fillStyle = '#f9a8d4'; ctx.beginPath(); ctx.arc(0, -25, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ec4899'; ctx.beginPath(); ctx.arc(0, -34, 17, Math.PI, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(16, -8, 23, -1.2, 1.2); ctx.stroke();
+    ctx.strokeStyle = '#fef3c7'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(19, -29); ctx.lineTo(19, 12); ctx.stroke();
+  } else if (u.id.includes('knight')) {
+    ctx.fillStyle = team; roundRect(ctx, -15, -4, 30, 34, 9);
+    ctx.fillStyle = '#e5e7eb'; ctx.beginPath(); ctx.arc(0, -25, 17, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = team; roundRect(ctx, -15, -35, 30, 13, 5);
+    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(35, -23); ctx.stroke();
+    ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(35, -23); ctx.lineTo(42, -31); ctx.stroke();
+  } else {
+    ctx.fillStyle = team; roundRect(ctx, -14, -2, 28, 31, 8);
+    ctx.fillStyle = '#f7c59f'; ctx.beginPath(); ctx.arc(0, -24, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#334155'; roundRect(ctx, -17, -38, 34, 14, 6);
+    ctx.fillStyle = '#94a3b8'; ctx.beginPath(); ctx.arc(20, -7, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 3; ctx.stroke();
+  }
+  ctx.fillStyle = '#111827';
+  ctx.beginPath(); ctx.arc(-5, -25, 2, 0, Math.PI * 2); ctx.arc(6, -25, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  drawHP(ctx, u.x, u.y, u.hp, u.maxHp, u.id.includes('giant') ? 58 : 46);
 }
 
 function App() {
@@ -116,7 +255,7 @@ function App() {
       const dir = u.owner === 'player' ? 1 : -1;
       const enemies = s.units.filter(v => v.owner !== u.owner && v.lane === u.lane && v.hp > 0);
       const liveTowers = s.towers.filter(t => t.owner !== u.owner && t.lane === u.lane && t.hp > 0);
-      let target = [...enemies, ...liveTowers].sort((a, b) => Math.abs(a.x - u.x) - Math.abs(b.x - u.x))[0];
+      const target = [...enemies, ...liveTowers].sort((a, b) => Math.abs(a.x - u.x) - Math.abs(b.x - u.x))[0];
       if (target && Math.abs(target.x - u.x) <= u.range) {
         u.cd -= dt;
         if (u.cd <= 0) {
@@ -146,37 +285,19 @@ function App() {
     const ctx = canvas.getContext('2d');
     const s = stateRef.current;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    g.addColorStop(0, '#123d2d'); g.addColorStop(1, '#0f2b3f');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(255,255,255,.08)';
-    for (const y of LANE_Y) { ctx.fillRect(120, y - 38, 660, 76); }
-    ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(450, 58); ctx.lineTo(450, 445); ctx.stroke();
-    ctx.fillStyle = 'rgba(96,165,250,.18)'; ctx.fillRect(0, 0, 450, 504);
-    ctx.fillStyle = 'rgba(248,113,113,.18)'; ctx.fillRect(450, 0, 450, 504);
-
-    const drawHp = (x, y, hp, max) => {
-      const w = 64; const pct = Math.max(0, hp / max);
-      ctx.fillStyle = '#111827'; ctx.fillRect(x - w/2, y - 48, w, 7);
-      ctx.fillStyle = hpColor(pct); ctx.fillRect(x - w/2, y - 48, w * pct, 7);
-    };
+    drawArena(ctx);
     if (!s) return;
-    for (const t of s.towers) {
-      if (t.hp <= 0) { ctx.globalAlpha = .35; }
-      ctx.fillStyle = t.owner === 'player' ? '#2563eb' : '#dc2626';
-      ctx.beginPath(); ctx.roundRect(t.x - 28, t.y - 34, 56, 68, 8); ctx.fill();
-      ctx.fillStyle = '#fde68a'; ctx.font = '26px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('♜', t.x, t.y + 10);
-      drawHp(t.x, t.y, t.hp, t.maxHp); ctx.globalAlpha = 1;
+    [...s.towers].sort((a,b) => a.y - b.y).forEach(t => drawTower(ctx, t));
+    [...s.units].sort((a,b) => a.y - b.y).forEach(u => drawUnit(ctx, u));
+    ctx.font = '900 14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    for (const p of s.sparks) {
+      ctx.fillStyle = `rgba(255,255,255,${p.ttl/0.28})`;
+      ctx.strokeStyle = `rgba(15,23,42,${p.ttl/0.28})`;
+      ctx.lineWidth = 3;
+      ctx.strokeText(p.txt, p.x, p.y);
+      ctx.fillText(p.txt, p.x, p.y);
     }
-    for (const u of s.units) {
-      ctx.fillStyle = u.owner === 'player' ? u.color : '#ef4444';
-      ctx.beginPath(); ctx.arc(u.x, u.y, 20, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(u.emoji, u.x, u.y + 7);
-      drawHp(u.x, u.y, u.hp, u.maxHp);
-    }
-    ctx.font = '700 14px Inter, sans-serif';
-    for (const p of s.sparks) { ctx.fillStyle = `rgba(255,255,255,${p.ttl/0.28})`; ctx.fillText(p.txt, p.x, p.y); }
     if (s.winner) {
       ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#fff'; ctx.font = '800 54px Inter, sans-serif'; ctx.fillText(s.winner, 450, 255);
@@ -216,7 +337,7 @@ function App() {
 
   return <main className="app">
     <section className="panel topbar">
-      <div><h1><Crown size={28}/> Essential Clash Duel</h1><p>Minimal lane battle: place cards, break all three enemy towers.</p></div>
+      <div><h1><Crown size={28}/> Essential Clash Duel</h1><p>Cartoon 2D arena battle: place cards, cross bridges, break all three enemy towers.</p></div>
       <div className="controls">
         <label>Bot tier<select value={difficulty} onChange={e => setDifficulty(e.target.value)}>{Object.entries(DIFFICULTIES).map(([k,v]) => <option key={k} value={k}>{v.label}</option>)}</select></label>
         <button onClick={newGame}><RotateCcw size={16}/> Restart</button>
@@ -236,7 +357,7 @@ function App() {
         <span className="emoji">{card.emoji}</span><b>{card.name}</b><small>{card.cost} elixir · {card.hp} hp · {card.dmg} dmg</small>
       </button>)}
     </section>
-    <p className="note">Fan-made original prototype using simple shapes/emojis only; no Supercell assets.</p>
+    <p className="note">Original fan-made cartoon styling inspired by lane/tower arena games; no Supercell art or copied assets.</p>
   </main>;
 }
 

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap');
 * { box-sizing: border-box; }
-body { margin: 0; font-family: Inter, system-ui, sans-serif; color: #eef2ff; background: radial-gradient(circle at top, #26335f, #08111f 62%); min-height: 100vh; }
+body { margin: 0; font-family: Inter, system-ui, sans-serif; color: #eef2ff; background: radial-gradient(circle at top, #3b5fc0, #08111f 62%); min-height: 100vh; }
 .app { width: min(980px, calc(100vw - 28px)); margin: 0 auto; padding: 24px 0 34px; }
 .panel, .hud, .cards, canvas { box-shadow: 0 24px 80px rgba(0,0,0,.32); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border: 1px solid rgba(255,255,255,.12); border-radius: 22px; background: rgba(15, 23, 42, .76); backdrop-filter: blur(12px); }
